@@ -1,6 +1,6 @@
 from click.testing import CliRunner
 
-from template_cli.cli import version
+from event_packing.cli import version
 
 
 def test_version() -> None:

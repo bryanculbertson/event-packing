@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """
-Basic CLI Template
+Event Packing
 
 Example usage:
-    poetry run template-cli version
+    poetry run event-packing version
 
 """
 import click
