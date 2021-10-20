@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "template-cli"
+name = "event-packing"
 version = "0.1.0"
-description = "Basic template for python project"
+description = "Event packing"
 authors = ["Bryan Culbertson <bryan@urbanfootprint.com>"]
 
 [tool.poetry.dependencies]
@@ -27,7 +27,7 @@ pytest-xdist = {extras = ["psutil"], version = "2.3.0"}
 pytest-randomly = "3.10.1"
 
 [tool.poetry.scripts]
-template-cli = "template_cli.cli:cli"
+event-packing = "event_packing.cli:cli"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
