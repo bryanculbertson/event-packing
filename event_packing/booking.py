@@ -1,6 +1,6 @@
-import json
 import functools
-from typing import Collection, List, Set, Tuple, Sequence, FrozenSet
+import json
+from typing import Collection, FrozenSet, List, Set, Tuple
 
 
 def book_meetings(
@@ -21,20 +21,26 @@ def book_meetings(
 
 
 @functools.cache
-def _book_meetings(meetings: FrozenSet[FrozenSet[int]]) -> Tuple[List[List[int]], Set[int]]:
+def _book_meetings(
+    meetings: FrozenSet[FrozenSet[int]],
+) -> Tuple[List[List[int]], Set[int]]:
     best_meetings: List[List[int]] = []
     best_attendees: Set[int] = set()
 
     sorted_meetings = sorted(meetings, key=lambda m: len(m), reverse=True)
 
     for meeting in sorted_meetings:
-        available_meetings = frozenset({m for m in meetings if not m.intersection(meeting)})
+        available_meetings = frozenset(
+            {m for m in meetings if not m.intersection(meeting)}
+        )
 
         booked_meetings: List[List[int]] = [list(meeting)]
         booked_attendees: Set[int] = set(meeting)
 
         if available_meetings:
-            next_booked_meetings, next_booked_attendees = _book_meetings(available_meetings)
+            next_booked_meetings, next_booked_attendees = _book_meetings(
+                available_meetings
+            )
             booked_meetings.extend(next_booked_meetings)
             booked_attendees.update(next_booked_attendees)
 
@@ -213,4 +219,6 @@ if __name__ == "__main__":
         booked_meetings, booked_attendees = book_meetings(meetings)
 
         meetings_result = json.dumps(booked_meetings, separators=(",", ":"))
-        print(f"{test_name}: `{meetings_result}` which has `{len(booked_attendees)}` attendees")
+        print(
+            f"{test_name}: `{meetings_result}` which has `{len(booked_attendees)}` attendees"
+        )
