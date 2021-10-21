@@ -1,10 +1,11 @@
+import functools
 import json
-from typing import Collection, List, Set, Tuple
+from typing import Collection, FrozenSet, List, Set, Tuple
 
 
 def book_meetings(
     meetings: Collection[Collection[int]],
-) -> Tuple[List[List[int]], Collection[int]]:
+) -> Tuple[List[List[int]], Set[int]]:
     """Calculate meetings that maximizes non-conflicting attendees
 
     Non-conflicting means no attendee appears in multiple meetings.
@@ -14,23 +15,40 @@ def book_meetings(
     """
     # Parse list of meeting attendees with a set to ensure no duplicate attendees,
     # or duplicate meetings
-    available_meetings = {frozenset(meeting) for meeting in meetings}
+    available_meetings = frozenset({frozenset(meeting) for meeting in meetings})
 
-    # Sort meetings from largest to smallest so we book the largest meetings first
-    sorted_meetings = sorted(available_meetings, key=lambda m: len(m), reverse=True)
+    return _book_meetings(available_meetings)
 
-    # Record the meetings and attendees that we book
-    booked_meetings = []
-    booked_attendees: Set[int] = set()
 
-    # Book each meeting from largest to smallest, and skip meetings who have attendees
-    # who have alreadly been booked.
-    for meeting_attendees in sorted_meetings:
-        if not meeting_attendees.intersection(booked_attendees):
-            booked_attendees.update(meeting_attendees)
-            booked_meetings.append(list(meeting_attendees))
+@functools.cache
+def _book_meetings(
+    meetings: FrozenSet[FrozenSet[int]],
+) -> Tuple[List[List[int]], Set[int]]:
+    best_meetings: List[List[int]] = []
+    best_attendees: Set[int] = set()
 
-    return booked_meetings, booked_attendees
+    sorted_meetings = sorted(meetings, key=lambda m: len(m), reverse=True)
+
+    for meeting in sorted_meetings:
+        available_meetings = frozenset(
+            {m for m in meetings if not m.intersection(meeting)}
+        )
+
+        booked_meetings: List[List[int]] = [list(meeting)]
+        booked_attendees: Set[int] = set(meeting)
+
+        if available_meetings:
+            next_booked_meetings, next_booked_attendees = _book_meetings(
+                available_meetings
+            )
+            booked_meetings.extend(next_booked_meetings)
+            booked_attendees.update(next_booked_attendees)
+
+        if len(booked_attendees) > len(best_attendees):
+            best_meetings = booked_meetings
+            best_attendees = booked_attendees
+
+    return best_meetings, best_attendees
 
 
 EXAMPLE_MEETINGS = {
@@ -198,7 +216,9 @@ EXAMPLE_MEETINGS = {
 
 if __name__ == "__main__":
     for test_name, meetings in EXAMPLE_MEETINGS.items():
-        meetings, attendees = book_meetings(meetings)
+        booked_meetings, booked_attendees = book_meetings(meetings)
 
-        meetings_result = json.dumps(meetings, separators=(",", ":"))
-        print(f"`{meetings_result}` which has `{len(attendees)}` attendees")
+        meetings_result = json.dumps(booked_meetings, separators=(",", ":"))
+        print(
+            f"{test_name}: `{meetings_result}` which has `{len(booked_attendees)}` attendees"
+        )
